@@ -30,7 +30,7 @@ int load_pieces_from_file(const char* filename, Piece* pieces) {
 
             // Fill in the missing characters with spaces if the line is too short
             for (int i = strlen(line); i < MAX_PIECE_SIZE; i++) {
-                pieces[piece_count].shape[row][i] = ' ';
+                pieces[piece_count].shape[row][i] = '0';
             }
             row++;
         }
