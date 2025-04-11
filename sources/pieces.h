@@ -10,3 +10,4 @@ typedef struct{
 }Piece;
 
 int load_pieces_from_file(const char* filename, Piece* pieces);
+void rotate_piece(Piece *p, int angle);
