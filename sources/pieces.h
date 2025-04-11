@@ -5,8 +5,8 @@
 
 typedef struct{
     char shape[MAX_PIECE_SIZE][MAX_PIECE_SIZE];
-    int width;
-    int height;
+    int width=MAX_PIECE_SIZE;
+    int height=MAX_PIECE_SIZE;
 }Piece;
 
 int load_pieces_from_file(const char* filename, Piece* pieces);
