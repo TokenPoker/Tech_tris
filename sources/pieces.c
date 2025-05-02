@@ -9,7 +9,7 @@
 int load_pieces_from_file(const char* filename, Piece* pieces) {
     FILE* file = fopen(filename, "r");
     if (!file) {
-        perror("Erreur ouverture fichier pièces");
+        perror("Erreur ouverture fichier piÃ¨ces");
         return 0;
     }
 
@@ -188,4 +188,3 @@ bool is_game_over(const Grid* grid, const Piece* next_piece) {
 
     return false; // The piece can be placed, so the game continues
 }
-
