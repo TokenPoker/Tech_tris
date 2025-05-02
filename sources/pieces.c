@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include "pieces.h"
-#include "game.h"
 #include <stdbool.h>
+#include "game.h" 
+#include "pieces.h"
+
 
 
 int load_pieces_from_file(const char* filename, Piece* pieces) {
@@ -108,6 +109,7 @@ void compute_piece_size(Piece* piece) {
     piece->offset_x = (right >= left) ? left : 0;
 }
 
+
 /*
  * Checks if a piece can be placed on the grid at a new position.
  *
@@ -170,3 +172,20 @@ bool move_piece(const Grid *grid, Piece *p, int dx, int dy) {
     // move blocked by collision or border
     return false;
 }
+
+
+// Check if the game is over by testing if the next piece can be placed on the grid
+bool is_game_over(const Grid* grid, const Piece* next_piece) {
+    // Calculate the typical spawn position: top row, horizontally centered
+    int start_x = (grid->width / 2) - (next_piece->width / 2);
+    int start_y = 0;
+
+    // Use existing collision detection to check if the piece fits
+    // If the piece does NOT fit, the game is over
+    if (!is_valid_position(grid, next_piece, start_x, start_y)) {
+        return true;  // Game over condition met
+    }
+
+    return false; // The piece can be placed, so the game continues
+}
+
