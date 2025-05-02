@@ -3,8 +3,8 @@
 #include <string.h>
 #include "score.h"
 
-// Sauvegarde un score (nom et points) dans un fichier (mode ajout)
-void save_scores_to_file(const char* name, int score, const char* filename){
+// Save a player's score (name and points) to a file in append mode
+void save_scores_to_file(const char* name, int score, const char* filename) {
     FILE* file = fopen(filename, "a");
     if (!file) {
         perror("Failed to open score file");
@@ -14,8 +14,8 @@ void save_scores_to_file(const char* name, int score, const char* filename){
     fclose(file);
 }
 
-// Charge tous les scores depuis un fichier dans un tableau de Score
-int load_scores_from_file(const char* filename, Score* scores){
+// Load all saved scores from a file into a Score array
+int load_scores_from_file(const char* filename, Score* scores) {
     FILE* file = fopen(filename, "r");
     if (!file) {
         perror("Could not open score file");
@@ -40,12 +40,12 @@ int load_scores_from_file(const char* filename, Score* scores){
     return count;
 }
 
-// Met à jour le score actuel (+100 par ligne détruite)
+// Increase current score: +100 points per line cleared
 void update_score(int* currentScore, int linesCleared) {
     *currentScore += linesCleared * 100;
 }
 
-// Vérifie et enregistre le meilleur score s'il est battu
+// Check if the current score is a new high score and save it if true
 void check_and_save_highscore(int currentScore, const char* playerName, const char* filename) {
     HighScore hs;
     int found = load_highscore(&hs, filename);
@@ -64,7 +64,7 @@ void check_and_save_highscore(int currentScore, const char* playerName, const ch
     }
 }
 
-// Charge le meilleur score depuis un fichier
+// Load the best high score from the given file
 int load_highscore(HighScore* hs, const char* filename) {
     FILE* file = fopen(filename, "r");
     if (!file) return 0;
@@ -83,4 +83,30 @@ int load_highscore(HighScore* hs, const char* filename) {
 
     fclose(file);
     return 0;
+}
+
+// Find the last recorded score for a given player name in the file
+int find_score_by_name(const char* filename, const char* name) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        perror("Could not open score file");
+        return -1;
+    }
+
+    char line[100];
+    int foundScore = -1;
+
+    while (fgets(line, sizeof(line), file)) {
+        line[strcspn(line, "\n")] = '\0'; // remove newline
+        char* separator = strchr(line, ':');
+        if (separator) {
+            *separator = '\0';
+            if (strcmp(line, name) == 0) {
+                foundScore = atoi(separator + 1); // update latest score found
+            }
+        }
+    }
+
+    fclose(file);
+    return foundScore;
 }
