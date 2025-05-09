@@ -116,7 +116,23 @@ void rotate_piece(Piece *p, int angle) {
 
 // Game over check: if piece cannot be placed at top
 bool is_game_over(const Grid* grid, const Piece* next_piece) {
-    return check_collision(next_piece, grid, next_piece->offset_x, next_piece->offset_y);
+    for (int i = 0; i < next_piece->height; i++) {
+        for (int j = 0; j < next_piece->width; j++) {
+            if (next_piece->shape[i][j] == '1') {
+                int gx = next_piece->offset_x + j;
+                int gy = next_piece->offset_y + i;
+
+                // Si la case est hors limites de la grille (gauche, droite ou bas)
+                if (gx < 0 || gx >= grid->width || gy < 0 || gy >= grid->height)
+                    return true;
+
+                // Si la case est déjà occupée
+                if (grid->shape[gy][gx] == '1')
+                    return true;
+            }
+        }
+    }
+    return false;
 }
 
 

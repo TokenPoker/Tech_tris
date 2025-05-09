@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "game.h"
-#include "pieces.h"
+#include "pieces.h"sudo apt update
 #include "score.h"
 
 
@@ -139,6 +139,9 @@ int main() {
                             currentState = STATE_MENU;
                         break;
                     case STATE_GAME:
+                        if (event.key.keysym.sym == SDLK_ESCAPE) {
+                            currentState = STATE_MENU;
+                        }
                         if (event.key.keysym.sym == SDLK_LEFT)
                             move_piece_left(&currentPiece, &grid);
                         if (event.key.keysym.sym == SDLK_RIGHT)
@@ -153,6 +156,7 @@ int main() {
                         if (event.key.keysym.sym == SDLK_a)
                             rotate_piece(&currentPiece, 90 );
                         break;
+                        
                 }
             }
         }
