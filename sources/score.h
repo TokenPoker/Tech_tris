@@ -20,7 +20,7 @@ void save_scores_to_file(const char* name, int score, const char* filename);
 int load_scores_from_file(const char* filename, Score* scores);
 
 // Increase the current score based on lines cleared (+100 per line)
-void update_score(int* currentScore, int linesCleared);
+void update_score(int* currentScore);
 
 // If the current score is a new high score, save it
 void check_and_save_highscore(int currentScore, const char* playerName, const char* filename);

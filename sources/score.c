@@ -41,8 +41,8 @@ int load_scores_from_file(const char* filename, Score* scores) {
 }
 
 // Increase current score: +100 points per line cleared
-void update_score(int* currentScore, int linesCleared) {
-    *currentScore += linesCleared * 100;
+void update_score(int* currentScore) {
+    *currentScore += 10 * 100;
 }
 
 // Check if the current score is a new high score and save it if true

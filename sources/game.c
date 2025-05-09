@@ -1,64 +1,148 @@
 
-#include <SDL.h>
-#include <SDL_ttf.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
+#include "game.h"
+#include "pieces.h"
 
-// Render the Game Over screen with a "Play Again" button
-bool renderGameOverScreen(SDL_Renderer* renderer, TTF_Font* font) {
-    bool waiting = true;
-    SDL_Event event;
-    SDL_Color white = {255, 255, 255, 255};
-    SDL_Color red = {200, 0, 0, 255};
-
-    // Coordinates of the "Play Again" button
-    SDL_Rect buttonRect = {300, 350, 200, 60};
-
-    while (waiting) {
-        // Handle events
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                return false;
-            }
-            if (event.type == SDL_MOUSEBUTTONDOWN) {
-                int x = event.button.x;
-                int y = event.button.y;
-
-                // Check if the click was inside the button
-                if (x >= buttonRect.x && x <= buttonRect.x + buttonRect.w &&
-                    y >= buttonRect.y && y <= buttonRect.y + buttonRect.h) {
-                    return true; // Replay!
-                }
+// Clear full lines and increment score
+void clear_full_lines(Grid *grid) {
+    for (int i = 0; i < grid->height; i++) {
+        bool full = true;
+        for (int j = 0; j < grid->width; j++) {
+            if (grid->shape[i][j] != '1') {
+                full = false;
+                break;
             }
         }
 
-        // Clear the screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
-        // Draw "Game Over"
-        SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, "GAME OVER", red);
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-        SDL_Rect textRect = {250, 200, textSurface->w, textSurface->h};
-        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-        SDL_FreeSurface(textSurface);
-        SDL_DestroyTexture(textTexture);
-
-        // Draw "Play Again" button
-        SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255); // gray button
-        SDL_RenderFillRect(renderer, &buttonRect);
-
-        SDL_Surface* btnSurface = TTF_RenderUTF8_Blended(font, "Play Again", white);
-        SDL_Texture* btnTexture = SDL_CreateTextureFromSurface(renderer, btnSurface);
-        SDL_Rect btnTextRect = {buttonRect.x + 25, buttonRect.y + 15, btnSurface->w, btnSurface->h};
-        SDL_RenderCopy(renderer, btnTexture, NULL, &btnTextRect);
-        SDL_FreeSurface(btnSurface);
-        SDL_DestroyTexture(btnTexture);
-
-        // Present to screen
-        SDL_RenderPresent(renderer);
-
-        SDL_Delay(16); // Limit to ~60 FPS
+        if (full) {
+            for (int k = i; k > 0; k--) {
+                for (int l = 0; l < grid->width; l++) {
+                    grid->shape[k][l] = grid->shape[k - 1][l];
+                }
+            }
+            for (int l = 0; l < grid->width; l++) {
+                grid->shape[0][l] = '0';
+            }
+        }
     }
-
-    return false; // Exit by default
 }
+
+// Check if piece collides at a given position
+bool check_collision(const Piece *piece, const Grid *grid, int newX, int newY) {
+    for (int i = 0; i < piece->height; i++) {
+        for (int j = 0; j < piece->width; j++) {
+            if (piece->shape[i][j] == '1') {
+                int gx = newX + j;
+                int gy = newY + i;
+                if (gx < 0 || gx >= grid->width || gy >= grid->height)
+                    return true;
+                if (gy >= 0 && grid->shape[gy][gx] == '1')
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Move piece to the left
+void move_piece_left(Piece *piece, const Grid *grid) {
+    if (!check_collision(piece, grid, piece->offset_x - 1, piece->offset_y)) {
+        piece->offset_x--;
+    }
+}
+
+// Move piece to the right
+void move_piece_right(Piece *piece, const Grid *grid) {
+    if (!check_collision(piece, grid, piece->offset_x + 1, piece->offset_y)) {
+        piece->offset_x++;
+    }
+}
+
+// Move piece down; return true if moved, false if locked
+bool move_piece_down(Piece *piece, const Grid *grid) {
+    if (!check_collision(piece, grid, piece->offset_x, piece->offset_y + 1)) {
+        piece->offset_y++;
+        return true;
+    }
+    return false;
+}
+
+// Lock piece into the grid
+void lock_piece(const Piece *piece, Grid *grid) {
+    for (int i = 0; i < piece->height; i++) {
+        for (int j = 0; j < piece->width; j++) {
+            if (piece->shape[i][j] == '1') {
+                int gx = piece->offset_x + j;
+                int gy = piece->offset_y + i;
+                if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
+                    grid->shape[gy][gx] = '1';
+                }
+            }
+        }
+    }
+}
+
+void rotate_piece(Piece *p, int angle) {
+    char temp[MAX_PIECE_SIZE][MAX_PIECE_SIZE]; // temporary array to store the rotated piece
+    int n = MAX_PIECE_SIZE;
+
+    // number of 90 degree rotations
+    int num_rotations = (angle / 90) % 4;
+
+    for (int r = 0; r < num_rotations; r++) {
+        // Rotation at 90 degrees in temp
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                temp[j][n - 1 - i] = p->shape[i][j];
+            }
+        }
+
+        // Copy temp in shape
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                p->shape[i][j] = temp[i][j];
+            }
+        }
+
+        // Update width and height after rotation
+        int tmp = p->width;
+        p->width = p->height;
+        p->height = tmp;
+    }
+}
+
+// Game over check: if piece cannot be placed at top
+bool is_game_over(const Grid* grid, const Piece* next_piece) {
+    return check_collision(next_piece, grid, next_piece->offset_x, next_piece->offset_y);
+}
+
+
+// Picks a random piece from the list and spawns it at the top center of the grid
+void spawn_random_piece_from_list(Grid *grid, Piece *currentPiece, Piece *allPieces, int totalPieces) {
+    // Choose a random index
+    int index = rand() % totalPieces;
+
+    // Copy the selected piece into currentPiece
+    *currentPiece = allPieces[index];
+
+    // Set initial position (top center)
+    currentPiece->offset_y = 0;
+    currentPiece->offset_x = (grid->width - currentPiece->width) / 2;
+
+    // Add the piece to the grid
+    for (int i = 0; i < currentPiece->height; i++) {
+        for (int j = 0; j < currentPiece->width; j++) {
+            if (currentPiece->shape[i][j] == '1') {
+                int x = currentPiece->offset_x + j;
+                int y = currentPiece->offset_y + i;
+                if (x >= 0 && x < grid->width && y >= 0 && y < grid->height) {
+                    grid->shape[y][x] = '1';
+                }
+            }
+        }
+    }
+}
+

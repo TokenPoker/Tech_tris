@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "game.h" 
 #define MAX_PIECE_SIZE 5
-#define MAX_PIECES 7
+#define MAX_PIECES 6
 
 typedef struct {
     char shape[MAX_PIECE_SIZE][MAX_PIECE_SIZE]; // representation 2D de la pièce
@@ -17,9 +17,6 @@ typedef struct {
 // Charge les pièces depuis un fichier texte
 int load_pieces_from_file(const char* filename, Piece* pieces);
 
-// Effectue une rotation à 90, 180, ou 270 degrés
-void rotate_piece(Piece *p, int angle);
-
 // Calcule les dimensions réelles de la pièce
 void compute_piece_size(Piece* piece);
 
@@ -29,7 +26,5 @@ bool is_valid_position(const Grid *grid, const Piece *p, int new_offset_x, int n
 // Tente de déplacer une pièce sur la grille
 bool move_piece(const Grid *grid, Piece *p, int dx, int dy);
 
-// Vérifie si la pièce ne peut pas être placée (fin de jeu)
-bool is_game_over(const Grid* grid, const Piece* next_piece);
 
 #endif // PIECES_H

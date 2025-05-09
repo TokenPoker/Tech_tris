@@ -6,7 +6,7 @@
 
 
 
-int load_pieces_from_file(const char* filename, Piece* pieces) {
+int load_pieces_from_file(const char* filename, Piece* allpieces) {
     FILE* file = fopen(filename, "r");
     if (!file) {
         perror("Erreur ouverture fichier piÃ¨ces");
@@ -25,7 +25,7 @@ int load_pieces_from_file(const char* filename, Piece* pieces) {
         //check if there is the separator
         if(strncmp(line, "---", 3) == 0){
             if (row > 0) {
-                compute_piece_size(&pieces[piece_count]);
+                compute_piece_size(&allpieces[piece_count]);
                 piece_count++;
                 row = 0;
             }
@@ -37,11 +37,11 @@ int load_pieces_from_file(const char* filename, Piece* pieces) {
         
 
         if (row < MAX_PIECE_SIZE) {
-            strncpy(pieces[piece_count].shape[row], line, MAX_PIECE_SIZE);
+            strncpy(allpieces[piece_count].shape[row], line, MAX_PIECE_SIZE);
 
             // Fill in the missing characters with spaces if the line is too short
             for (int i = strlen(line); i < MAX_PIECE_SIZE; i++) {
-                pieces[piece_count].shape[row][i] = '0';
+                allpieces[piece_count].shape[row][i] = '0';
             }
             row++;
         }
@@ -54,35 +54,13 @@ int load_pieces_from_file(const char* filename, Piece* pieces) {
 }
 
 
-void rotate_piece(Piece *p, int angle) {
-    char temp[MAX_PIECE_SIZE][MAX_PIECE_SIZE]; // temporary array to store the rotated piece
-    int n = MAX_PIECE_SIZE;
-
-    // number of 90 degree rotations
-    int num_rotations = (angle / 90) % 4;
-
-    for (int r = 0; r < num_rotations; r++) {
-        // Rotation at 90 degrees in temp
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                temp[j][n - 1 - i] = p->shape[i][j];
-            }
-        }
-
-        // Copy temp in shape
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                p->shape[i][j] = temp[i][j];
-            }
-        }
-
-        //Put up to date the width and height
-        int tmp = p->width;
-        p->width = p->height;
-        p->height = tmp;
-    }
-}
-
+/*
+ * Computes the size of a piece by determining its height and width.
+ * The offsets are also calculated to find the top-left corner of the bounding box.
+ *
+ * Parameters:
+ * - piece: pointer to the Piece structure
+ */
 
 void compute_piece_size(Piece* piece) {
     int top = MAX_PIECE_SIZE, bottom = -1;
@@ -171,20 +149,4 @@ bool move_piece(const Grid *grid, Piece *p, int dx, int dy) {
 
     // move blocked by collision or border
     return false;
-}
-
-
-// Check if the game is over by testing if the next piece can be placed on the grid
-bool is_game_over(const Grid* grid, const Piece* next_piece) {
-    // Calculate the typical spawn position: top row, horizontally centered
-    int start_x = (grid->width / 2) - (next_piece->width / 2);
-    int start_y = 0;
-
-    // Use existing collision detection to check if the piece fits
-    // If the piece does NOT fit, the game is over
-    if (!is_valid_position(grid, next_piece, start_x, start_y)) {
-        return true;  // Game over condition met
-    }
-
-    return false; // The piece can be placed, so the game continues
 }

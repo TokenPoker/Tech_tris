@@ -38,4 +38,7 @@ void rotate_piece(Piece *p, int angle);
 // Vérifie si la partie est finie (impossible de placer la pièce en haut)
 bool is_game_over(const Grid* grid, const Piece* next_piece);
 
+// Génère une nouvelle pièce aléatoire et la place en haut de la grille
+void spawn_random_piece_from_list(Grid *grid, Piece *currentPiece, Piece *allPieces, int totalPieces);
+
 #endif // GAME_H
