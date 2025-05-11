@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <SDL.h>
 #include "game.h"
 #include "pieces.h"
 
@@ -64,7 +65,7 @@ void move_piece_right(Piece *piece, const Grid *grid) {
 // Move piece down; return true if moved, false if locked
 bool move_piece_down(Piece *piece, const Grid *grid) {
     if (!check_collision(piece, grid, piece->offset_x, piece->offset_y + 1)) {
-        piece->offset_y++;
+        piece->offset_y--;
         return true;
     }
     return false;
@@ -162,3 +163,24 @@ void spawn_random_piece_from_list(Grid *grid, Piece *currentPiece, Piece *allPie
     }
 }
 
+
+bool auto_drop_piece(Piece* piece, const Grid* grid, int mode,Uint32 *lastDropTime) {
+    Uint32 currentTime = SDL_GetTicks();
+
+    // initiate lastDropTime if not already done
+    int dropDelay;
+    switch (mode) {
+        case 0: dropDelay = 800; break;  // CLASSIC
+        case 1: dropDelay = 300; break;  // HARD
+        case 2: dropDelay = 1200; break; // ZEN
+        default: dropDelay = 800; break; // DEFAULT
+    }
+
+    // Vérify if the time is right to drop the piece
+    if (currentTime - *lastDropTime >= (Uint32)dropDelay) {
+        *lastDropTime = currentTime;
+        return move_piece_down(piece, grid);
+    }
+
+    return true; 
+}

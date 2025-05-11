@@ -13,11 +13,11 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define GRID_WIDTH 10
-#define GRID_HEIGHT 20
-#define BLOCK_SIZE 25
+#define GRID_HEIGHT 15
+#define BLOCK_SIZE 40
 #define MAX_PIECES 6
 
-Grid unlockGrid = { .width = GRID_WIDTH, .height = GRID_HEIGHT };
+
 Grid lockGrid = { .width = GRID_WIDTH, .height = GRID_HEIGHT };
 Piece currentPiece;
 Piece allPieces[MAX_PIECES];
@@ -28,7 +28,9 @@ typedef enum {
     STATE_OPTIONS,
     STATE_GAME,
     STATE_PSEUDO,
-    STATE_PAUSE
+    STATE_PAUSE,
+    STATE_GAMEOVER,
+    STATE_EXIT
 } GameState;
 
 
@@ -80,23 +82,34 @@ exit:
     - none
 
 */
-void renderGame(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* blockTexture, Grid* grid, int score) {
+void renderGame(SDL_Renderer* renderer, TTF_Font* font,  Grid* grid, int score) {
     // Set background color (dark blue) and clear the screen
-    SDL_SetRenderDrawColor(renderer, 0, 0, 20, 255);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 60, 255);
     SDL_RenderClear(renderer);
 
     // Draw all blocks in the game grid
-    for (int i = 0; i < GRID_HEIGHT; i++) {
-        for (int j = 0; j < GRID_WIDTH; j++) {
-            // If this cell contains a block ('1'), draw it
-            if (grid->shape[i][j] == '1') {
-                SDL_Rect blockRect = {
-                    j * BLOCK_SIZE + 50, // x-position (add offset for centering)
-                    i * BLOCK_SIZE + 20, // y-position (add offset for top margin)
-                    BLOCK_SIZE,          // width
-                    BLOCK_SIZE           // height
+    for (int i = 0; i < GRID_HEIGHT+2; i++) {
+        for (int j = 0; j < GRID_WIDTH+2; j++) {
+            // Draw the grid borders
+            if(i == 0 || i == GRID_HEIGHT+1 || j == 0 || j == GRID_WIDTH+1){
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0); // black color
+                SDL_Rect borderRect = {
+                    j * BLOCK_SIZE + 401, // x-position (add offset for centering)
+                    i * BLOCK_SIZE + 121 , // y-position (add offset for top margin)
+                    BLOCK_SIZE-2,          // width
+                    BLOCK_SIZE-2           // height
                 };
-                SDL_RenderCopy(renderer, blockTexture, NULL, &blockRect);
+                SDL_RenderFillRect(renderer, &borderRect); // draw the block
+            }else if (grid->shape[i-1][j-1] == '1') {
+                SDL_SetRenderDrawColor(renderer, 40, 40,40, 255); // black color
+                SDL_Rect blockRect = {
+                    j * BLOCK_SIZE + 401, // x-position (add offset for centering)
+                    i * BLOCK_SIZE + 121, // y-position (add offset for top margin)
+                    BLOCK_SIZE-2,          // width
+                    BLOCK_SIZE-2           // height
+                };
+                SDL_RenderFillRect(renderer, &blockRect); // draw the block
             }
         }
     }
@@ -128,8 +141,8 @@ void renderGame(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* blockTextur
     const char* controlsText[] = {
         "Arrows = Move",
         "A/S = Rotate",
-        "Space = Pause",
-        "Enter = Drop"
+        "Esc = Pause",
+        "Space = Drop"
     };
 
     for (int i = 0; i < 4; i++) {
@@ -166,11 +179,13 @@ int main() {
 
 
     // Load textures and font
-    SDL_Texture* blockTexture = IMG_LoadTexture(renderer, "block.png");
+    
     TTF_Font* font = TTF_OpenFont("font.ttf", 28);
-    SDL_Texture* bgTexture = IMG_LoadTexture(renderer, "fond_menu.png");
+    SDL_Texture* bgTextureMenu = IMG_LoadTexture(renderer, "fond_menu.png");
+    SDL_Texture* bgTexturePause = IMG_LoadTexture(renderer, "Menu_pause.png");
+    SDL_Texture* bgTexturesave = IMG_LoadTexture(renderer, "fond_save.png");
 
-    if (!bgTexture) {
+    if (!bgTextureMenu || !bgTexturePause || !bgTexturesave) {
         printf("Failed to load background: %s\n", IMG_GetError());
         return 1;
     }
@@ -180,17 +195,15 @@ int main() {
         printf("Failed to load font: %s\n", TTF_GetError());
        
     }
-    if ( !blockTexture) {
-        printf("Failed to load texture: %s\n", IMG_GetError());
-    }
-
 
 
     // Define interactive button areas
     SDL_Rect startBtn = { 480, 450, 320, 50 };
     SDL_Rect optionsBtn = { 480, 510, 320, 50 };
     SDL_Rect exitBtn = { 480, 570, 320, 50 };
-
+    SDL_Rect menuButton = { 460, 450, 250, 90 };     // x, y, width, height
+    SDL_Rect optionsButton = { 415, 330, 345, 70 };
+    SDL_Rect resumeButton = { 370, 185, 430 , 90 };
     Mix_Music* bgm = Mix_LoadMUS("Tetris Theme Music.mp3");
     int musicVolume = 64; // Valeur initiale (50%)
     Mix_VolumeMusic(musicVolume);
@@ -202,22 +215,22 @@ int main() {
 
 
     const char* modesText[3] = { "CLASSIC", "HARD", "ZEN" };
-
+    Uint32 LastdropTime = 0;
     char playerName[50] = "";
     int nameLength = 0;
     int selectedMode = 0;
     GameState currentState = STATE_MENU;
-
+    GameState previousState = STATE_MENU;
+    
     bool running = true;
     SDL_Event event;
 
 
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            
-            if (event.type == SDL_QUIT)
+    while (running){
+        while (SDL_PollEvent(&event)){
+            if (event.type == SDL_QUIT){
                 running = false;
-            else if (event.type == SDL_KEYDOWN) {
+            }else if (event.type == SDL_KEYDOWN) {
                 switch (currentState) {
                     
                     case STATE_MENU:
@@ -245,14 +258,14 @@ int main() {
                             Mix_VolumeMusic(musicVolume);
                             isMuted = 0;
 
-                        }else if(event.key.keysym.sym == SDLK_RIGHT){
+                        }else if(event.key.keysym.sym == SDLK_RIGHT && previousState != STATE_PAUSE){
                             selectedMode = (selectedMode + 1) % 3; // Cycle through modes
 
-                        }else if(event.key.keysym.sym == SDLK_LEFT){
+                        }else if(event.key.keysym.sym == SDLK_LEFT && previousState != STATE_PAUSE){
                             selectedMode = (selectedMode - 1 + 3) % 3; // Cycle through modes
 
-                        }else if (event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_ESCAPE){
-                            currentState = STATE_MENU;
+                        }else if (event.key.keysym.sym == SDLK_ESCAPE){
+                            currentState = previousState;
 
                         }
                         break;
@@ -268,31 +281,58 @@ int main() {
                             }
                             
                             load_pieces_from_file("pieces.txt", allPieces);
-                            spawn_random_piece_from_list(&grid, &currentPiece, allPieces, MAX_PIECES);
+                            spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
                             SDL_StopTextInput();
                         }
-                    case STATE_GAME:
-                        if (event.key.keysym.sym == SDLK_ESCAPE) {
-                            currentState = STATE_MENU;
-                            Mix_PauseMusic();
-                        }
-                        if (event.key.keysym.sym == SDLK_LEFT)
-                            move_piece_left(&currentPiece, &grid);
-                        if (event.key.keysym.sym == SDLK_RIGHT)
-                            move_piece_right(&currentPiece, &grid);
-                        if (event.key.keysym.sym == SDLK_DOWN) {
-                            if (!move_piece_down(&currentPiece, &grid)) {
-                                lock_piece(&currentPiece, &grid);
-                                clear_full_lines(&grid);
-                                spawn_random_piece_from_list(&grid, &currentPiece, allPieces, MAX_PIECES);
-                            }
-                        }
-                        if (event.key.keysym.sym == SDLK_a)
-                            rotate_piece(&currentPiece, 90 );
                         break;
+                    case STATE_GAME:
+                        if (event.key.keysym.sym == SDLK_LEFT)
+                            move_piece_left(&currentPiece, &lockGrid);
+                        if (event.key.keysym.sym == SDLK_RIGHT)
+                            move_piece_right(&currentPiece, &lockGrid);
+                        if (event.key.keysym.sym == SDLK_DOWN) {
+                            if (!move_piece_down(&currentPiece, &lockGrid)) {
+                                lock_piece(&currentPiece, &lockGrid);
+                                clear_full_lines(&lockGrid);
+                                spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
+                            }
+                        }else if (event.key.keysym.sym == SDLK_a){
+                            rotate_piece(&currentPiece, 90 );
+                        }else if (event.key.keysym.sym == SDLK_s){
+                            rotate_piece(&currentPiece, -90);
+                        }else if (event.key.keysym.sym == SDLK_ESCAPE){ 
+                            currentState = STATE_PAUSE;
+                            Mix_PauseMusic();
+                        }else if(event.key.keysym.sym == SDLK_SPACE){
+                            // Drop the piece immediately
+                            while (move_piece_down(&currentPiece, &lockGrid)) {
+                                // Keep moving down until it can't anymore
+                            }
+                            lock_piece(&currentPiece, &lockGrid);
+                            clear_full_lines(&lockGrid);
+                            spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
+                        }
+                        break;
+                    case STATE_EXIT:
+                        if(event.key.keysym.sym == SDLK_y){
+                            currentState = STATE_MENU;
+                            previousState = STATE_MENU;
+                            save_scores_to_file(playerName, score, "score.txt");
+                            score = 0;
+                            playerName[0] = '\0';
+                            nameLength = 0;
+
+                        }else if(event.key.keysym.sym == SDLK_n){
                         
-                }
-            }else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                            currentState = STATE_MENU;
+                            previousState = STATE_MENU;
+                            score = 0;
+                            playerName[0] = '\0';
+                            nameLength = 0;
+                        }
+                        break;
+                    }
+                }else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
                 int mx = event.button.x;
                 int my = event.button.y;
                 
@@ -306,8 +346,19 @@ int main() {
                         SDL_StartTextInput();
                     } else if (isMouseOver(optionsBtn, mx, my)) {
                         currentState = STATE_OPTIONS;
+                        previousState = STATE_MENU;
                     } else if (isMouseOver(exitBtn, mx, my)) {
                         running = false;
+                    }
+                }else if(currentState == STATE_PAUSE){
+                    if (isMouseOver(menuButton, mx, my)) {
+                        currentState = STATE_EXIT;
+                    } else if (isMouseOver(optionsButton, mx, my)) {
+                        currentState = STATE_OPTIONS;
+                        previousState = STATE_PAUSE;
+                    }else if(isMouseOver(resumeButton, mx, my)){
+                        currentState = STATE_GAME;
+                        Mix_ResumeMusic();
                     }
                 }
             }else if(event.type == SDL_MOUSEWHEEL){
@@ -320,17 +371,25 @@ int main() {
                     Mix_VolumeMusic(musicVolume);
                 }
             }else if (event.type == SDL_TEXTINPUT && currentState == STATE_PSEUDO) {
-                if (nameLength < sizeof(playerName) - 1) {
+                if (nameLength < (int)(sizeof(playerName) - 1)) {
                     strcat(playerName, event.text.text);
                     nameLength++;
                 }
             }
+            if (currentState == STATE_GAME && !auto_drop_piece(&currentPiece, &lockGrid, selectedMode, &LastdropTime)) {
+                lock_piece(&currentPiece, &lockGrid);
+                clear_full_lines(&lockGrid);
+                spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
+            }
         }
+
 
         // RENDERING
         if (currentState == STATE_MENU) {
+
+                
             // Draw background image
-            SDL_RenderCopy(renderer, bgTexture, NULL, NULL); // Fullscreen
+            SDL_RenderCopy(renderer, bgTextureMenu, NULL, NULL); 
 
             // Get current mouse position
             int mouseX, mouseY;
@@ -404,14 +463,59 @@ int main() {
             SDL_DestroyTexture(prompt);
             SDL_DestroyTexture(nameText);
         }else if (currentState == STATE_GAME) {
-            renderGame(renderer, font, blockTexture, &grid, score);
+            renderGame(renderer, font, &lockGrid, score);
+        }else if (currentState == STATE_PAUSE) {
+
+            // Draw background image
+            SDL_RenderCopy(renderer, bgTexturePause, NULL, NULL); 
+
+            // Get current mouse position
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+
+            // Highlight buttons on hover
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow outline
+            if (isMouseOver(menuButton, mouseX, mouseY)){
+                SDL_RenderDrawRect(renderer, &menuButton);
+            }
+            if (isMouseOver(optionsButton, mouseX, mouseY)){
+                SDL_RenderDrawRect(renderer, &optionsButton);
+            }
+            if (isMouseOver(resumeButton, mouseX, mouseY)){
+                SDL_RenderDrawRect(renderer, &resumeButton);
+            }
+
+
+        }else if(currentState == STATE_EXIT){
+            
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, bgTexturesave, NULL, NULL); 
+        
+            // Main question text
+            SDL_Texture* question = renderText(renderer, font, "Do you want to save?", (SDL_Color){255, 255, 255, 255});
+            SDL_Texture* options = renderText(renderer, font, "Y. Yes      N. No", (SDL_Color){255, 255, 0, 255});
+        
+            int qw, qh, ow, oh;
+            SDL_QueryTexture(question, NULL, NULL, &qw, &qh);
+            SDL_QueryTexture(options, NULL, NULL, &ow, &oh);
+        
+            SDL_Rect questionRect = { SCREEN_WIDTH / 2 - qw / 2, SCREEN_HEIGHT / 2 - 60, qw, qh };
+            SDL_Rect optionsRect = { SCREEN_WIDTH / 2 - ow / 2, SCREEN_HEIGHT / 2, ow, oh };
+        
+            SDL_RenderCopy(renderer, question, NULL, &questionRect);
+            SDL_RenderCopy(renderer, options, NULL, &optionsRect);
+        
+            SDL_DestroyTexture(question);
+            SDL_DestroyTexture(options);
+        
+           
         }
 
         SDL_RenderPresent(renderer);
     }
 
-    
-    SDL_DestroyTexture(blockTexture);
+
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

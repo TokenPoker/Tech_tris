@@ -2,9 +2,10 @@
 #define GAME_H
 
 #include <stdbool.h>
+#include <SDL.h>
 
 #define GRID_WIDTH 10
-#define GRID_HEIGHT 20
+#define GRID_HEIGHT 10
 
 typedef struct {
     char shape[GRID_HEIGHT][GRID_WIDTH]; // '0' = empty, '1' = filled
@@ -40,5 +41,8 @@ bool is_game_over(const Grid* grid, const Piece* next_piece);
 
 // Génère une nouvelle pièce aléatoire et la place en haut de la grille
 void spawn_random_piece_from_list(Grid *grid, Piece *currentPiece, Piece *allPieces, int totalPieces);
+
+// Vérifie si la pièce peut être placée à une nouvelle position
+bool auto_drop_piece( Piece *piece, const Grid *grid, int mode, Uint32 *lastDropTime);
 
 #endif // GAME_H
