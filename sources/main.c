@@ -85,7 +85,7 @@ exit:
 void renderGame(SDL_Renderer* renderer, TTF_Font* font,  Grid* grid, int score) {
     // Set background color (dark blue) and clear the screen
 
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    SDL_SetRenderDrawColor(renderer, 96, 80, 220, 255);
     SDL_RenderClear(renderer);
 
     insert_piece_in_grid(&currentPiece, &lockGrid); // Insert the current piece into the grid
@@ -187,8 +187,9 @@ int main() {
     SDL_Texture* bgTextureMenu = IMG_LoadTexture(renderer, "fond_menu.png");
     SDL_Texture* bgTexturePause = IMG_LoadTexture(renderer, "Menu_pause.png");
     SDL_Texture* bgTexturesave = IMG_LoadTexture(renderer, "fond_save.png");
+    SDL_Texture* bgTexturegameover = IMG_LoadTexture(renderer, "front_Gameover.png");
 
-    if (!bgTextureMenu || !bgTexturePause || !bgTexturesave) {
+    if (!bgTextureMenu || !bgTexturePause || !bgTexturesave || !bgTexturegameover) {
         printf("Failed to load background: %s\n", IMG_GetError());
         return 1;
     }
@@ -207,6 +208,9 @@ int main() {
     SDL_Rect menuButton = { 460, 450, 250, 90 };     // x, y, width, height
     SDL_Rect optionsButton = { 415, 330, 345, 70 };
     SDL_Rect resumeButton = { 370, 185, 430 , 90 };
+    SDL_Rect replayButton = { 400, 580, 160, 60 };     // x, y, width, height
+    SDL_Rect options2Button = { 580, 580, 160, 60 };
+    SDL_Rect exit2Button = { 770, 580,  160 , 60 };
     Mix_Music* bgm = Mix_LoadMUS("Tetris Theme Music.mp3");
     int musicVolume = 64; // Valeur initiale (50%)
     Mix_VolumeMusic(musicVolume);
@@ -224,6 +228,7 @@ int main() {
     int selectedMode = 0;
     GameState currentState = STATE_MENU;
     GameState previousState = STATE_MENU;
+    GameState futurState = STATE_MENU;
     
     bool running = true;
     SDL_Event event;
@@ -335,53 +340,72 @@ int main() {
                         break;
                     case STATE_EXIT:
                         if(event.key.keysym.sym == SDLK_y){
-                            currentState = STATE_MENU;
-                            previousState = STATE_MENU;
+                            currentState = futurState;
+                            previousState = futurState;
                             save_scores_to_file(playerName, score, "score.txt");
                             score = 0;
                             playerName[0] = '\0';
                             nameLength = 0;
+                            clear_grid(&lockGrid);
+                            if(futurState == STATE_PSEUDO){
+                                SDL_StartTextInput();
+                            }
 
                         }else if(event.key.keysym.sym == SDLK_n){
                         
-                            currentState = STATE_MENU;
-                            previousState = STATE_MENU;
+                            currentState = futurState;
+                            previousState = futurState;
                             score = 0;
                             playerName[0] = '\0';
                             nameLength = 0;
+                            clear_grid(&lockGrid);
+                            if(futurState == STATE_PSEUDO){
+                                SDL_StartTextInput();
+                            }
                         }
                         break;
                     }
                 }else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-                int mx = event.button.x;
-                int my = event.button.y;
+                    int mx = event.button.x;
+                    int my = event.button.y;
+                    
+                    // Check if the mouse is over any button
                 
-                // Check if the mouse is over any button
-            
-                if (currentState == STATE_MENU) {
-                    if (isMouseOver(startBtn, mx, my)) {
-                        currentState = STATE_PSEUDO;
-                        playerName[0] = '\0';
-                        nameLength = 0;
-                        SDL_StartTextInput();
-                    } else if (isMouseOver(optionsBtn, mx, my)) {
-                        currentState = STATE_OPTIONS;
-                        previousState = STATE_MENU;
-                    } else if (isMouseOver(exitBtn, mx, my)) {
-                        running = false;
+                    if (currentState == STATE_MENU) {
+                        if (isMouseOver(startBtn, mx, my)) {
+                            currentState = STATE_PSEUDO;
+                            playerName[0] = '\0';
+                            nameLength = 0;
+                            SDL_StartTextInput();
+                        } else if (isMouseOver(optionsBtn, mx, my)) {
+                            currentState = STATE_OPTIONS;
+                            previousState = STATE_MENU;
+                        } else if (isMouseOver(exitBtn, mx, my)) {
+                            running = false;
+                        }
+                    }else if(currentState == STATE_PAUSE){
+                        if (isMouseOver(menuButton, mx, my)) {
+                            currentState = STATE_EXIT;
+                        } else if (isMouseOver(optionsButton, mx, my)) {
+                            currentState = STATE_OPTIONS;
+                            previousState = STATE_PAUSE;
+                        }else if(isMouseOver(resumeButton, mx, my)){
+                            currentState = STATE_GAME;
+                            Mix_ResumeMusic();
+                        }
+                    }else if(currentState == STATE_GAMEOVER){
+                        if (isMouseOver(replayButton, mx, my)) {
+                            currentState = STATE_EXIT;
+                            futurState = STATE_PSEUDO;
+                        } else if (isMouseOver(options2Button, mx, my)) {
+                            currentState = STATE_OPTIONS;
+                            previousState = STATE_GAMEOVER;
+                        }else if(isMouseOver(exit2Button, mx, my)){
+                            currentState = STATE_EXIT;
+                            futurState = STATE_MENU;
+                        }
                     }
-                }else if(currentState == STATE_PAUSE){
-                    if (isMouseOver(menuButton, mx, my)) {
-                        currentState = STATE_EXIT;
-                    } else if (isMouseOver(optionsButton, mx, my)) {
-                        currentState = STATE_OPTIONS;
-                        previousState = STATE_PAUSE;
-                    }else if(isMouseOver(resumeButton, mx, my)){
-                        currentState = STATE_GAME;
-                        Mix_ResumeMusic();
-                    }
-                }
-            }else if(event.type == SDL_MOUSEWHEEL){
+                }else if(event.type == SDL_MOUSEWHEEL){
                 if (currentState == STATE_OPTIONS) {
                     if (event.wheel.y > 0 && musicVolume < 128) {
                         musicVolume += 8;
@@ -534,6 +558,71 @@ int main() {
             SDL_DestroyTexture(options);
         
            
+        }else if(currentState == STATE_GAMEOVER){
+            // Draw background image
+            SDL_RenderCopy(renderer, bgTexturegameover, NULL, NULL); 
+
+            // Get current mouse position
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+
+            // Highlight buttons on hover
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow outline
+            if (isMouseOver(replayButton, mouseX, mouseY)){
+                SDL_RenderDrawRect(renderer, &replayButton);
+            }
+            if (isMouseOver(options2Button, mouseX, mouseY)){
+                SDL_RenderDrawRect(renderer, &options2Button);
+            }
+            if (isMouseOver(exit2Button, mouseX, mouseY)){
+                SDL_RenderDrawRect(renderer, &exit2Button);
+            }
+            // Display the score in a specific area (between x=540, y=275 and x=790, y=330)
+            char scoreText[50];
+            sprintf(scoreText, "%d", score); // format the score text
+
+            SDL_Texture* scoreTexture = renderText(renderer, font, scoreText, (SDL_Color){255, 255, 255, 255}); // white text
+            int texW = 0, texH = 0;
+            SDL_QueryTexture(scoreTexture, NULL, NULL, &texW, &texH);
+
+            // Center the text inside the box (540,275)-(790,330)
+            int centerX = 540 + (790 - 540) / 2 - texW / 2;
+            int centerY = 275 + (330 - 275) / 2 - texH / 2;
+
+            SDL_Rect scoreRect = { centerX, centerY, texW, texH };
+            SDL_RenderCopy(renderer, scoreTexture, NULL, &scoreRect);
+            SDL_DestroyTexture(scoreTexture);
+
+            // Display top 3 scores inside box (555,450)-(800,570)
+            Score* top[3];
+            get_top_three_scores_and_save("score.txt", top);
+
+            int boxX = 555;
+            int boxY = 450;
+            int boxWidth = 800 - 555;
+            int boxHeight = 570 - 450;
+            int lineSpacing = boxHeight / 3; // spacing between lines
+
+            for (int i = 0; i < 3; i++) {
+                char scoreText[50];
+                sprintf(scoreText, "%s: %d", top[i]->pseudo, top[i]->score);
+
+                SDL_Texture* textTexture = renderText(renderer, font, scoreText, (SDL_Color){255, 255, 255, 255});
+                int texW = 0, texH = 0;
+                SDL_QueryTexture(textTexture, NULL, NULL, &texW, &texH);
+
+                SDL_Rect dstRect = {
+                    boxX + (boxWidth - texW) / 2,           // center horizontally
+                    boxY + i * lineSpacing + (lineSpacing - texH) / 2, // vertical spacing
+                    texW,
+                    texH
+                };
+                SDL_RenderCopy(renderer, textTexture, NULL, &dstRect);
+                SDL_DestroyTexture(textTexture);
+            }
+
+
         }
 
         SDL_RenderPresent(renderer);

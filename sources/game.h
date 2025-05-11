@@ -45,4 +45,7 @@ void spawn_random_piece_from_list(Grid *grid, Piece *currentPiece, Piece *allPie
 // Vérifie si la pièce peut être placée à une nouvelle position
 bool auto_drop_piece( Piece *piece, const Grid *grid, int mode, Uint32 *lastDropTime);
 
+// vider la grille
+void clear_grid(Grid *grid);
+
 #endif // GAME_H

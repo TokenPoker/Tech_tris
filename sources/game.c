@@ -8,6 +8,20 @@
 #include "pieces.h"
 #include "score.h"
 
+void debug_print_piece(const Piece* piece) {
+    printf("=== DEBUG PIECE ===\n");
+    printf("Width: %d | Height: %d | Pos: (%d, %d)\n",
+           piece->width, piece->height, piece->offset_x, piece->offset_y);
+
+    for (int i = 0; i < MAX_PIECE_SIZE; i++) {
+        for (int j = 0; j < MAX_PIECE_SIZE; j++) {
+            char c = piece->shape[i][j];
+            printf("%c", (c == '1') ? '#' : '.');
+        }
+        printf("\n");
+    }
+    printf("===================\n");
+}
 
 // Clear all full lines in the grid and make upper lines fall down
 void clear_full_lines(Grid *grid, int* score) {
@@ -91,8 +105,8 @@ void lock_piece(const Piece *piece, Grid *grid) {
     for (int i = piece->start_y; i < piece->start_y + piece->height; i++) {
         for (int j = piece->start_x; j < piece->start_x + piece->width; j++) {
             if (piece->shape[i][j] == '1') {
-                int gx = piece->offset_x + (j - piece->start_x);
-                int gy = piece->offset_y + (i - piece->start_y);
+                int gx = piece->offset_x + j -1;
+                int gy = piece->offset_y + i -1;
                 if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
                     grid->shape[gy][gx] = '1';
                 }
@@ -102,20 +116,7 @@ void lock_piece(const Piece *piece, Grid *grid) {
 }
 
 
-void debug_print_piece(const Piece* piece) {
-    printf("=== DEBUG PIECE ===\n");
-    printf("Width: %d | Height: %d | Pos: (%d, %d)\n",
-           piece->width, piece->height, piece->offset_x, piece->offset_y);
 
-    for (int i = 0; i < MAX_PIECE_SIZE; i++) {
-        for (int j = 0; j < MAX_PIECE_SIZE; j++) {
-            char c = piece->shape[i][j];
-            printf("%c", (c == '1') ? '#' : '.');
-        }
-        printf("\n");
-    }
-    printf("===================\n");
-}
 
 void rotate_piece(Piece *p, int angle) {
     char temp[MAX_PIECE_SIZE][MAX_PIECE_SIZE]; // temporary array to store the rotated piece
@@ -125,7 +126,6 @@ void rotate_piece(Piece *p, int angle) {
     int num_rotations = (angle / 90) % 4;
 
     for (int r = 0; r < num_rotations; r++) {
-        debug_print_piece(p); // Debug print before rotation
         // Rotation at 90 degrees in temp
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
@@ -210,4 +210,13 @@ bool auto_drop_piece(Piece* piece, const Grid* grid, int mode,Uint32 *lastDropTi
     }
 
     return true; 
+}
+
+
+void clear_grid(Grid* grid) {
+    for (int i = 0; i < grid->height; i++) {
+        for (int j = 0; j < grid->width; j++) {
+            grid->shape[i][j] = '0';
+        }
+    }
 }

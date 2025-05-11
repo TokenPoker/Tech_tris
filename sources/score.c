@@ -112,26 +112,20 @@ int find_score_by_name(const char* filename, const char* name) {
 }
 
 
-// Load all scores, sort them, keep top 3, and save them to a new file
-void get_top_three_scores_and_save(const char* inputFile, const char* outputFile, Score top3[3]) {
-    Score allScores[100];
+// Load all scores, sort them, and copy top 3 into top3 array
+void get_top_three_scores_and_save(const char* inputFile, Score* top3[3]) {
+    static Score allScores[100];
     int count = load_scores_from_file(inputFile, allScores);
 
-    // If no scores found, fill with default and write empty top3 file
-    if (count == 0) {
-        for (int i = 0; i < 3; i++) {
-            top3[i].score = 0;
-            strcpy(top3[i].pseudo, "N/A");
-        }
-        FILE* out = fopen(outputFile, "w");
-        if (out) {
-            for (int i = 0; i < 3; i++) {
-                fprintf(out, "%s:%d\n", top3[i].pseudo, top3[i].score);
-            }
-            fclose(out);
-        }
-        return;
+    // If no scores found, initialize top3 with defaults
+    for (int i = 0; i < 3; i++) {
+        static Score defaultScore;
+        defaultScore.score = 0;
+        strcpy(defaultScore.pseudo, "N/A");
+        top3[i] = &defaultScore;
     }
+
+    if (count == 0) return;
 
     // Sort scores in descending order (highest first)
     for (int i = 0; i < count - 1; i++) {
@@ -144,26 +138,8 @@ void get_top_three_scores_and_save(const char* inputFile, const char* outputFile
         }
     }
 
-    // Copy top 3 scores
-    for (int i = 0; i < 3; i++) {
-        if (i < count) {
-            top3[i] = allScores[i];
-        } else {
-            top3[i].score = 0;
-            strcpy(top3[i].pseudo, "N/A");
-        }
+    // Assign top 3 pointers
+    for (int i = 0; i < 3 && i < count; i++) {
+        top3[i] = &allScores[i];
     }
-
-    // Save top 3 to a new file
-    FILE* file = fopen(outputFile, "w");
-    if (!file) {
-        perror("Failed to write top scores");
-        return;
-    }
-
-    for (int i = 0; i < 3; i++) {
-        fprintf(file, "%s:%d\n", top3[i].pseudo, top3[i].score);
-    }
-
-    fclose(file);
 }

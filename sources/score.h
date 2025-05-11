@@ -31,6 +31,9 @@ int load_highscore(HighScore* hs, const char* filename);
 // Search for the last recorded score of a player by name
 int find_score_by_name(const char* filename, const char* name);
 
+//save the 3 best scores in a file
+void get_top_three_scores_and_save(const char* inputFile, Score* top3[3]);
+
 
 #endif
 

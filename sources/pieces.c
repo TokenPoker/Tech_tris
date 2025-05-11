@@ -62,30 +62,7 @@ int load_pieces_from_file(const char* filename, Piece* allpieces) {
  * - piece: pointer to the Piece structure
  */
 
-// void compute_piece_size(Piece* piece) {
-//     int top = MAX_PIECE_SIZE, bottom = -1;
-//     int left = MAX_PIECE_SIZE, right = -1;
 
-//     for (int i = 0; i < MAX_PIECE_SIZE; i++) {
-//         for (int j = 0; j < MAX_PIECE_SIZE; j++) {
-//             if (piece->shape[i][j] != '0') {
-//                 if (i < top) top = i;
-//                 if (i > bottom) bottom = i;
-//                 if (j < left) left = j;
-//                 if (j > right) right = j;
-//             }
-//         }
-//     }
-
-
-//     // Compute the height and width of the active area of the piece
-//     piece->height = (bottom >= top) ? (bottom - top + 1) : 0;
-//     piece->width  = (right >= left) ? (right - left + 1) : 0;
-
-//     // Save the offsets of the top-left corner of the bounding box
-//     piece->offset_y = (bottom >= top) ? top : 0;
-//     piece->offset_x = (right >= left) ? left : 0;
-// }
 void compute_piece_size(Piece* piece) {
     int top = MAX_PIECE_SIZE, bottom = -1;
     int left = MAX_PIECE_SIZE, right = -1;
