@@ -12,6 +12,8 @@ typedef struct {
     int height;    // hauteur réelle
     int offset_x;  // position x (colonne) de la pièce dans la grille
     int offset_y;  // position y (ligne) dans la grille
+    int start_x;  // position x (colonne) de la pièce dans la grille
+    int start_y;  // position y (ligne) dans la grille
 } Piece;
 
 // Charge les pièces depuis un fichier texte

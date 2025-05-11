@@ -47,11 +47,11 @@ void clear_full_lines(Grid *grid, int* score) {
 
 // Check if piece collides at a given position
 bool check_collision(const Piece *piece, const Grid *grid, int newX, int newY) {
-    for (int i = 0; i < piece->height; i++) {
-        for (int j = 0; j < piece->width; j++) {
+    for (int i = 0; i < MAX_PIECE_SIZE; i++) {
+        for (int j = 0; j < MAX_PIECE_SIZE; j++) {
             if (piece->shape[i][j] == '1') {
-                int gx = newX + j;
-                int gy = newY + i;
+                int gx = newX + j-1;
+                int gy = newY + i-1;
                 if (gx < 0 || gx >= grid->width || gy >= grid->height)
                     return true;
                 if (gy >= 0 && grid->shape[gy][gx] == '1')
@@ -88,17 +88,33 @@ bool move_piece_down(Piece *piece, const Grid *grid) {
 
 // Lock piece into the grid
 void lock_piece(const Piece *piece, Grid *grid) {
-    for (int i = 0; i < piece->height; i++) {
-        for (int j = 0; j < piece->width; j++) {
+    for (int i = piece->start_y; i < piece->start_y + piece->height; i++) {
+        for (int j = piece->start_x; j < piece->start_x + piece->width; j++) {
             if (piece->shape[i][j] == '1') {
-                int gx = piece->offset_x + j;
-                int gy = piece->offset_y + i;
+                int gx = piece->offset_x + (j - piece->start_x);
+                int gy = piece->offset_y + (i - piece->start_y);
                 if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
                     grid->shape[gy][gx] = '1';
                 }
             }
         }
     }
+}
+
+
+void debug_print_piece(const Piece* piece) {
+    printf("=== DEBUG PIECE ===\n");
+    printf("Width: %d | Height: %d | Pos: (%d, %d)\n",
+           piece->width, piece->height, piece->offset_x, piece->offset_y);
+
+    for (int i = 0; i < MAX_PIECE_SIZE; i++) {
+        for (int j = 0; j < MAX_PIECE_SIZE; j++) {
+            char c = piece->shape[i][j];
+            printf("%c", (c == '1') ? '#' : '.');
+        }
+        printf("\n");
+    }
+    printf("===================\n");
 }
 
 void rotate_piece(Piece *p, int angle) {
@@ -109,6 +125,7 @@ void rotate_piece(Piece *p, int angle) {
     int num_rotations = (angle / 90) % 4;
 
     for (int r = 0; r < num_rotations; r++) {
+        debug_print_piece(p); // Debug print before rotation
         // Rotation at 90 degrees in temp
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
@@ -128,21 +145,24 @@ void rotate_piece(Piece *p, int angle) {
         p->width = p->height;
         p->height = tmp;
     }
+    compute_piece_size(p); // Recalculate actual size and recenter the shape
+
 }
 
-// Game over check: if piece cannot be placed at top
-bool is_game_over(const Grid* grid, const Piece* next_piece) {
-    for (int i = 0; i < next_piece->height; i++) {
-        for (int j = 0; j < next_piece->width; j++) {
-            if (next_piece->shape[i][j] == '1') {
-                int gx = next_piece->offset_x + j;
-                int gy = next_piece->offset_y + i;
 
-                // Si la case est hors limites de la grille (gauche, droite ou bas)
-                if (gx < 0 || gx >= grid->width || gy < 0 || gy >= grid->height)
+
+bool is_game_over(const Grid* grid, const Piece* piece) {
+    for (int i = piece->start_y; i < piece->start_y + piece->height; i++) {
+        for (int j = piece->start_x; j < piece->start_x + piece->width; j++) {
+            if (piece->shape[i][j] == '1') {
+                int gx = piece->offset_x + j -1;
+                int gy = piece->offset_y + i -1;
+
+                // Out of bounds = game over
+                if (gx < 0 || gx >= grid->width || gy < 0 || gy >= grid->height){
                     return true;
-
-                // Si la case est déjà occupée
+                }
+                // Collides with filled cell
                 if (grid->shape[gy][gx] == '1')
                     return true;
             }

@@ -13,7 +13,7 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define GRID_WIDTH 10
-#define GRID_HEIGHT 15
+#define GRID_HEIGHT 10
 #define BLOCK_SIZE 40
 #define MAX_PIECES 6
 
@@ -85,8 +85,10 @@ exit:
 void renderGame(SDL_Renderer* renderer, TTF_Font* font,  Grid* grid, int score) {
     // Set background color (dark blue) and clear the screen
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 60, 255);
+    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
     SDL_RenderClear(renderer);
+
+    insert_piece_in_grid(&currentPiece, &lockGrid); // Insert the current piece into the grid
 
     // Draw all blocks in the game grid
     for (int i = 0; i < GRID_HEIGHT+2; i++) {
@@ -113,6 +115,7 @@ void renderGame(SDL_Renderer* renderer, TTF_Font* font,  Grid* grid, int score) 
             }
         }
     }
+    remove_piece_from_grid(&currentPiece, &lockGrid); // Remove the current piece from the grid
 
     // Draw a grey panel on the right side of the screen for UI
     SDL_Rect panelRect = { SCREEN_WIDTH - 250, 0, 250, SCREEN_HEIGHT };
@@ -122,7 +125,7 @@ void renderGame(SDL_Renderer* renderer, TTF_Font* font,  Grid* grid, int score) 
     // Display the score
     char scoreText[50];
     sprintf(scoreText, "Score: %d", score); // format the score text
-    SDL_Texture* scoreTexture = renderText(renderer, font, scoreText, (SDL_Color){0, 255, 255, 255}); // white text
+    SDL_Texture* scoreTexture = renderText(renderer, font, scoreText, (SDL_Color){255, 255, 255, 255}); // white text
     int texW = 0, texH = 0;
     SDL_QueryTexture(scoreTexture, NULL, NULL, &texW, &texH); // get size of the texture
     SDL_Rect scoreRect = { SCREEN_WIDTH - 220, 50, texW, texH }; // position the score
@@ -293,13 +296,26 @@ int main() {
                         if (event.key.keysym.sym == SDLK_DOWN) {
                             if (!move_piece_down(&currentPiece, &lockGrid)) {
                                 lock_piece(&currentPiece, &lockGrid);
-                                clear_full_lines(&lockGrid);
+                                clear_full_lines(&lockGrid, &score);
+                                
                                 spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
+                                if (is_game_over(&lockGrid, &currentPiece)) {
+                                    currentState = STATE_GAMEOVER;
+                                    Mix_PauseMusic(); // facultatif
+                                }
                             }
                         }else if (event.key.keysym.sym == SDLK_a){
-                            rotate_piece(&currentPiece, 90 );
+                            Piece temp = currentPiece;
+                            rotate_piece(&temp, 90);
+                            if (!check_collision(&temp, &lockGrid, temp.offset_x, temp.offset_y)) {
+                            currentPiece = temp; // applique la rotation si valide
+                            }
                         }else if (event.key.keysym.sym == SDLK_s){
-                            rotate_piece(&currentPiece, -90);
+                            Piece temp = currentPiece;
+                            rotate_piece(&temp, 270);
+                            if (!check_collision(&temp,&lockGrid, temp.offset_x, temp.offset_y)) {
+                                currentPiece = temp; // applique la rotation si valide
+                            }
                         }else if (event.key.keysym.sym == SDLK_ESCAPE){ 
                             currentState = STATE_PAUSE;
                             Mix_PauseMusic();
@@ -309,8 +325,12 @@ int main() {
                                 // Keep moving down until it can't anymore
                             }
                             lock_piece(&currentPiece, &lockGrid);
-                            clear_full_lines(&lockGrid);
+                            clear_full_lines(&lockGrid, &score);
                             spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
+                            if (is_game_over(&lockGrid, &currentPiece)) {
+                                currentState = STATE_GAMEOVER;
+                                Mix_PauseMusic(); // facultatif
+                            }
                         }
                         break;
                     case STATE_EXIT:
@@ -376,20 +396,18 @@ int main() {
                     nameLength++;
                 }
             }
-           if (currentState == STATE_GAME) {
-        if (!auto_drop_piece(&currentPiece, &lockGrid, selectedMode, &LastdropTime)) {
+
+        }
+
+        if (currentState == STATE_GAME && !auto_drop_piece(&currentPiece, &lockGrid, selectedMode, &LastdropTime)) {
             lock_piece(&currentPiece, &lockGrid);
-            clear_full_lines(&lockGrid);
+            clear_full_lines(&lockGrid, &score);
             spawn_random_piece_from_list(&lockGrid, &currentPiece, allPieces, MAX_PIECES);
+            if (is_game_over(&lockGrid, &currentPiece)) {
+                currentState = STATE_GAMEOVER;
+                Mix_PauseMusic(); // facultatif
+            }
         }
-    }
-
-    renderGame(renderer, font, &lockGrid, score);
-    SDL_Delay(16);
-
-        }
-
-
         // RENDERING
         if (currentState == STATE_MENU) {
 

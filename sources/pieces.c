@@ -62,13 +62,38 @@ int load_pieces_from_file(const char* filename, Piece* allpieces) {
  * - piece: pointer to the Piece structure
  */
 
+// void compute_piece_size(Piece* piece) {
+//     int top = MAX_PIECE_SIZE, bottom = -1;
+//     int left = MAX_PIECE_SIZE, right = -1;
+
+//     for (int i = 0; i < MAX_PIECE_SIZE; i++) {
+//         for (int j = 0; j < MAX_PIECE_SIZE; j++) {
+//             if (piece->shape[i][j] != '0') {
+//                 if (i < top) top = i;
+//                 if (i > bottom) bottom = i;
+//                 if (j < left) left = j;
+//                 if (j > right) right = j;
+//             }
+//         }
+//     }
+
+
+//     // Compute the height and width of the active area of the piece
+//     piece->height = (bottom >= top) ? (bottom - top + 1) : 0;
+//     piece->width  = (right >= left) ? (right - left + 1) : 0;
+
+//     // Save the offsets of the top-left corner of the bounding box
+//     piece->offset_y = (bottom >= top) ? top : 0;
+//     piece->offset_x = (right >= left) ? left : 0;
+// }
 void compute_piece_size(Piece* piece) {
     int top = MAX_PIECE_SIZE, bottom = -1;
     int left = MAX_PIECE_SIZE, right = -1;
 
+    // Find bounding box of the actual shape
     for (int i = 0; i < MAX_PIECE_SIZE; i++) {
         for (int j = 0; j < MAX_PIECE_SIZE; j++) {
-            if (piece->shape[i][j] != '0') {
+            if (piece->shape[i][j] == '1') {
                 if (i < top) top = i;
                 if (i > bottom) bottom = i;
                 if (j < left) left = j;
@@ -77,14 +102,41 @@ void compute_piece_size(Piece* piece) {
         }
     }
 
+    // Compute width and height of the useful area
+    piece->height = bottom - top + 1;
+    piece->width = right - left + 1;
 
-    // Compute the height and width of the active area of the piece
-    piece->height = (bottom >= top) ? (bottom - top + 1) : 0;
-    piece->width  = (right >= left) ? (right - left + 1) : 0;
+    // Copy the bounding box to a temp buffer
+    char new_shape[MAX_PIECE_SIZE][MAX_PIECE_SIZE];
+    for (int i = 0; i < MAX_PIECE_SIZE; i++)
+        for (int j = 0; j < MAX_PIECE_SIZE; j++)
+            new_shape[i][j] = '0';
 
-    // Save the offsets of the top-left corner of the bounding box
-    piece->offset_y = (bottom >= top) ? top : 0;
-    piece->offset_x = (right >= left) ? left : 0;
+    for (int i = 0; i < piece->height; i++) {
+        for (int j = 0; j < piece->width; j++) {
+            new_shape[i][j] = piece->shape[top + i][left + j];
+        }
+    }
+
+    // Recenter new_shape inside 5x5
+    piece->start_y = (MAX_PIECE_SIZE - piece->height) / 2;
+    piece->start_x = (MAX_PIECE_SIZE - piece->width) / 2;
+
+    // Clear original
+    for (int i = 0; i < MAX_PIECE_SIZE; i++)
+        for (int j = 0; j < MAX_PIECE_SIZE; j++)
+            piece->shape[i][j] = '0';
+
+    // Paste centered
+    for (int i = 0; i < piece->height; i++) {
+        for (int j = 0; j < piece->width; j++) {
+            piece->shape[piece->start_y + i][piece->start_x + j] = new_shape[i][j];
+        }
+    }
+
+    // Update piece position (optional: keep the same pos_x/pos_y)
+    piece->offset_x = piece->offset_x;
+    piece->offset_y = piece->offset_y;
 }
 
 
@@ -151,11 +203,11 @@ bool move_piece(const Grid *grid, Piece *p, int dx, int dy) {
     return false;
 }
 void insert_piece_in_grid(Piece* piece, Grid* grid) {
-    for (int i = 0; i < piece->height; i++) {
-        for (int j = 0; j < piece->width; j++) {
+    for (int i = piece->start_y; i < piece->height+piece->start_y; i++) {
+        for (int j = piece->start_x; j < piece->width+piece->start_x; j++) {
             if (piece->shape[i][j] == '1') {
-                int gx = piece->offset_x + j;
-                int gy = piece->offset_y + i;
+                int gx = piece->offset_x + j-1;
+                int gy = piece->offset_y + i-1;
 
                 // Check bounds
                 if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
@@ -167,11 +219,11 @@ void insert_piece_in_grid(Piece* piece, Grid* grid) {
 }
 
 void remove_piece_from_grid(Piece* piece, Grid* grid) {
-    for (int i = 0; i < piece->height; i++) {
-        for (int j = 0; j < piece->width; j++) {
+    for (int i = piece->start_y; i < piece->height+piece->start_y; i++) {
+        for (int j = piece->start_x; j < piece->width+piece->start_x; j++) {
             if (piece->shape[i][j] == '1') {
-                int gx = piece->offset_x + j;
-                int gy = piece->offset_y + i;
+                int gx = piece->offset_x + j-1;
+                int gy = piece->offset_y + i-1;
 
                 // Check bounds
                 if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
