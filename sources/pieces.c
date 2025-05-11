@@ -150,3 +150,34 @@ bool move_piece(const Grid *grid, Piece *p, int dx, int dy) {
     // move blocked by collision or border
     return false;
 }
+void insert_piece_in_grid(Piece* piece, Grid* grid) {
+    for (int i = 0; i < piece->height; i++) {
+        for (int j = 0; j < piece->width; j++) {
+            if (piece->shape[i][j] == '1') {
+                int gx = piece->offset_x + j;
+                int gy = piece->offset_y + i;
+
+                // Check bounds
+                if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
+                    grid->shape[gy][gx] = '1';
+                }
+            }
+        }
+    }
+}
+
+void remove_piece_from_grid(Piece* piece, Grid* grid) {
+    for (int i = 0; i < piece->height; i++) {
+        for (int j = 0; j < piece->width; j++) {
+            if (piece->shape[i][j] == '1') {
+                int gx = piece->offset_x + j;
+                int gy = piece->offset_y + i;
+
+                // Check bounds
+                if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
+                    grid->shape[gy][gx] = '0';
+                }
+            }
+        }
+    }
+}

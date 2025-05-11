@@ -6,30 +6,44 @@
 #include <SDL.h>
 #include "game.h"
 #include "pieces.h"
+#include "score.h"
 
-// Clear full lines and increment score
-void clear_full_lines(Grid *grid) {
-    for (int i = 0; i < grid->height; i++) {
+
+// Clear all full lines in the grid and make upper lines fall down
+void clear_full_lines(Grid *grid, int* score) {
+    for (int row = grid->height - 1; row >= 0; row--) {
         bool full = true;
-        for (int j = 0; j < grid->width; j++) {
-            if (grid->shape[i][j] != '1') {
+
+        // Check if current row is full
+        for (int col = 0; col < grid->width; col++) {
+            if (grid->shape[row][col] != '1') {
                 full = false;
                 break;
             }
         }
 
+        // If full, move all rows above down by 1
         if (full) {
-            for (int k = i; k > 0; k--) {
-                for (int l = 0; l < grid->width; l++) {
-                    grid->shape[k][l] = grid->shape[k - 1][l];
+            for (int r = row; r > 0; r--) {
+                for (int c = 0; c < grid->width; c++) {
+                    grid->shape[r][c] = grid->shape[r - 1][c];
                 }
             }
-            for (int l = 0; l < grid->width; l++) {
-                grid->shape[0][l] = '0';
+
+            // Clear top row after shifting
+            for (int c = 0; c < grid->width; c++) {
+                grid->shape[0][c] = '0';
             }
+
+            // Increment score
+            update_score(score);
+
+            // Recheck same row after shifting
+            row++;
         }
     }
 }
+
 
 // Check if piece collides at a given position
 bool check_collision(const Piece *piece, const Grid *grid, int newX, int newY) {
@@ -65,7 +79,8 @@ void move_piece_right(Piece *piece, const Grid *grid) {
 // Move piece down; return true if moved, false if locked
 bool move_piece_down(Piece *piece, const Grid *grid) {
     if (!check_collision(piece, grid, piece->offset_x, piece->offset_y + 1)) {
-        piece->offset_y--;
+        
+        piece->offset_y++;
         return true;
     }
     return false;
@@ -149,18 +164,7 @@ void spawn_random_piece_from_list(Grid *grid, Piece *currentPiece, Piece *allPie
     currentPiece->offset_y = 0;
     currentPiece->offset_x = (grid->width - currentPiece->width) / 2;
 
-    // Add the piece to the grid
-    for (int i = 0; i < currentPiece->height; i++) {
-        for (int j = 0; j < currentPiece->width; j++) {
-            if (currentPiece->shape[i][j] == '1') {
-                int x = currentPiece->offset_x + j;
-                int y = currentPiece->offset_y + i;
-                if (x >= 0 && x < grid->width && y >= 0 && y < grid->height) {
-                    grid->shape[y][x] = '1';
-                }
-            }
-        }
-    }
+
 }
 
 
@@ -171,15 +175,18 @@ bool auto_drop_piece(Piece* piece, const Grid* grid, int mode,Uint32 *lastDropTi
     int dropDelay;
     switch (mode) {
         case 0: dropDelay = 800; break;  // CLASSIC
-        case 1: dropDelay = 300; break;  // HARD
+        case 1: dropDelay = 400; break;  // HARD
         case 2: dropDelay = 1200; break; // ZEN
         default: dropDelay = 800; break; // DEFAULT
     }
 
     // Vérify if the time is right to drop the piece
+   
     if (currentTime - *lastDropTime >= (Uint32)dropDelay) {
+        bool v = move_piece_down(piece, grid);
+        // Update last drop time
         *lastDropTime = currentTime;
-        return move_piece_down(piece, grid);
+        return v;
     }
 
     return true; 

@@ -26,5 +26,9 @@ bool is_valid_position(const Grid *grid, const Piece *p, int new_offset_x, int n
 // Tente de déplacer une pièce sur la grille
 bool move_piece(const Grid *grid, Piece *p, int dx, int dy);
 
+// Insère une pièce dans la grille
+void insert_piece_in_grid(Piece* piece, Grid* grid);
 
+// Supprime une pièce de la grille
+void remove_piece_from_grid(Piece* piece, Grid* grid);
 #endif // PIECES_H

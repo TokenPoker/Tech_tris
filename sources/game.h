@@ -16,7 +16,7 @@ typedef struct {
 #include "pieces.h" // pour struct Piece
 
 // Efface les lignes pleines de la grille
-void clear_full_lines(Grid *grid);
+void clear_full_lines(Grid *grid, int* score);
 
 // Vérifie les collisions d'une pièce à une position (newX, newY)
 bool check_collision(const Piece *piece, const Grid *grid, int newX, int newY);
