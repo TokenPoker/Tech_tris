@@ -1,26 +1,29 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -g `sdl2-config --cflags` -I.
-LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_ttf
+CFLAGS = -Wall -Wextra -std=c99 -g
+
+# SDL2 and related libraries
+SDL2_CFLAGS = $(shell sdl2-config --cflags)
+SDL2_LDFLAGS = $(shell sdl2-config --libs) -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 # Source files
 SRC = main.c game.c pieces.c score.c
 OBJ = $(SRC:.c=.o)
-EXEC = tetris
 
-# Default rule
+# Executable name
+EXEC = techtris
+
+# Build rules
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(SDL2_LDFLAGS)
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) $(SDL2_CFLAGS) -c $< -o $@
 
-# Clean object files and executable
 clean:
-	rm -f $(OBJ) $(EXEC)
+	rm -f *.o $(EXEC)
 
-# Run the game
-run: $(EXEC)
+run: all
 	./$(EXEC)
