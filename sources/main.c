@@ -386,6 +386,7 @@ int main() {
                     }else if(currentState == STATE_PAUSE){
                         if (isMouseOver(menuButton, mx, my)) {
                             currentState = STATE_EXIT;
+                            futurState = STATE_MENU;
                         } else if (isMouseOver(optionsButton, mx, my)) {
                             currentState = STATE_OPTIONS;
                             previousState = STATE_PAUSE;

@@ -9,8 +9,8 @@
 
 typedef struct {
     char shape[GRID_HEIGHT][GRID_WIDTH]; // '0' = empty, '1' = filled
-    int width;
-    int height;
+    int width;     // largeur réelle
+    int height;    // hauteur réelle
 } Grid;
 
 #include "pieces.h" // pour struct Piece
