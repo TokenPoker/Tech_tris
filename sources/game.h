@@ -6,25 +6,6 @@
 #include <SDL.h>
 #include "pieces.h"
 
-
-
-
-
-/**
- * Structure representing the game grid.
- * Each cell can contain:
- *   - '0' for an empty cell
- *   - '1' for a filled cell
- * 
- * Members:
- *   shape  : 2D array representing the grid cells.
- *   width  : Width of the grid (usually GRID_WIDTH).
- *   height : Height of the grid (usually GRID_HEIGHT).
- */
-
-
-
-
 /**
  * Clears all full lines in the grid and shifts down upper lines.
  *
