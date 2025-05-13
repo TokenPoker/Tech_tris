@@ -5,18 +5,18 @@
 
 // Save a player's score (name and points) to a file in append mode
 void save_scores_to_file(const char* name, int score, const char* filename) {
-    FILE* file = fopen(filename, "a");
+    FILE* file = fopen(filename, "a");// Open file in append mode
     if (!file) {
         perror("Failed to open score file");
         return;
     }
-    fprintf(file, "%s:%d\n", name, score);
-    fclose(file);
+    fprintf(file, "%s:%d\n", name, score);// Write name and score in "name:score" format
+    fclose(file); // Close file
 }
 
 // Load all saved scores from a file into a Score array
 int load_scores_from_file(const char* filename, Score* scores) {
-    FILE* file = fopen(filename, "r");
+    FILE* file = fopen(filename, "r");  // Open file in read mode
     if (!file) {
         perror("Could not open score file");
         return 0;
@@ -25,48 +25,47 @@ int load_scores_from_file(const char* filename, Score* scores) {
     int count = 0;
     char line[100];
 
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file)) {  // Read file line by line
         line[strcspn(line, "\n")] = '\0'; // Remove newline
-        char* separator = strchr(line, ':');
+        char* separator = strchr(line, ':'); // Find the ':' separator between name and score
         if (separator) {
-            *separator = '\0';
-            strcpy(scores[count].pseudo, line);
-            scores[count].score = atoi(separator + 1);
-            count++;
+            *separator = '\0'; // Replace ':' with null terminator to isolate name
+            strcpy(scores[count].pseudo, line); // Copy name into structure
+            scores[count].score = atoi(separator + 1);// Convert score string to int
+            count++;// Increase score count
         }
     }
 
-    fclose(file);
-    return count;
+    fclose(file);// Close file
+    return count;// Return number of loaded scores
 }
 
 // Increase current score: +100 points per line cleared
 void update_score(int* currentScore) {
-    *currentScore += 10 * 100;
+    *currentScore += 10 * 100;// Add 1000 points to the current score
 }
 
 // Check if the current score is a new high score and save it if true
 void check_and_save_highscore(int currentScore, const char* playerName, const char* filename) {
     HighScore hs;
-    int found = load_highscore(&hs, filename);
+    int found = load_highscore(&hs, filename);// Try to load existing high score
 
-    if (!found || currentScore > hs.score) {
-        FILE* file = fopen(filename, "w");
+    if (!found || currentScore > hs.score) {// If no high score or current is higher
+
+        FILE* file = fopen(filename, "w");// Open file in write mode (overwrite)
         if (!file) {
             perror("Failed to open highscore file");
             return;
         }
 
-        fprintf(file, "%s:%d\n", playerName, currentScore);
+        fprintf(file, "%s:%d\n", playerName, currentScore); // Save new high score
         fclose(file);
-
-        printf("🎉 New High Score: %s with %d points!\n", playerName, currentScore);
     }
 }
 
 // Load the best high score from the given file
 int load_highscore(HighScore* hs, const char* filename) {
-    FILE* file = fopen(filename, "r");
+    FILE* file = fopen(filename, "r");// Open file in read mode
     if (!file) return 0;
 
     char line[100];
