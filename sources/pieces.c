@@ -5,7 +5,7 @@
 #include "pieces.h"
 
 
-
+// Load pieces from a text file into the array `allpieces`.
 int load_pieces_from_file(const char* filename, Piece* allpieces) {
     FILE* file = fopen(filename, "r");
     if (!file) {
@@ -25,7 +25,7 @@ int load_pieces_from_file(const char* filename, Piece* allpieces) {
         //check if there is the separator
         if(strncmp(line, "---", 3) == 0){
             if (row > 0) {
-                compute_piece_size(&allpieces[piece_count]);
+                compute_piece_size(&allpieces[piece_count]);// Calculate size of the piece
                 piece_count++;
                 row = 0;
             }
@@ -48,21 +48,13 @@ int load_pieces_from_file(const char* filename, Piece* allpieces) {
     }
 
     fclose(file);
-    return piece_count + 1;
+    return piece_count + 1; // Return total pieces loaded
 
     
 }
 
 
-/*
- * Computes the size of a piece by determining its height and width.
- * The offsets are also calculated to find the top-left corner of the bounding box.
- *
- * Parameters:
- * - piece: pointer to the Piece structure
- */
-
-
+// Calculate the actual size and center of a piece
 void compute_piece_size(Piece* piece) {
     int top = MAX_PIECE_SIZE, bottom = -1;
     int left = MAX_PIECE_SIZE, right = -1;
@@ -116,69 +108,7 @@ void compute_piece_size(Piece* piece) {
     piece->offset_y = piece->offset_y;
 }
 
-
-/*
- * Checks if a piece can be placed on the grid at a new position.
- *
- * Parameters:
- * - grid: pointer to the Grid structure
- * - p: pointer to the Piece structure
- * - new_offset_x: intended X position (leftmost column)
- * - new_offset_y: intended Y position (top row)
- *
- * Returns:
- * - true if the piece fits without colliding or going out of bounds
- * - false otherwise
- */
-bool is_valid_position(const Grid *grid, const Piece *p, int new_offset_x, int new_offset_y) {
-    for (int i = 0; i < MAX_PIECE_SIZE; i++) {
-        for (int j = 0; j < MAX_PIECE_SIZE; j++) {
-            if (p->shape[i][j] == '1') { // only test occupied blocks
-                int gx = new_offset_x + j;
-                int gy = new_offset_y + i;
-
-                // check if coordinates are within grid boundaries
-                if (gx < 0 || gx >= grid->width || gy < 0 || gy >= grid->height)
-                    return false;
-
-                // check if the cell is already occupied in the grid
-                if (grid->shape[gy][gx] != '0')
-                    return false;
-            }
-        }
-    }
-    return true; // all tests passed
-}
-
-
-/*
- * Attempts to move a piece on the grid by dx (left/right) and dy (down).
- *
- * Parameters:
- * - grid: pointer to the Grid structure
- * - p: pointer to the Piece structure
- * - dx: change in X (e.g., -1 for left, +1 for right)
- * - dy: change in Y (e.g., +1 for down)
- *
- * Returns:
- * - true if the move is valid and applied
- * - false if the move would go out of bounds or cause collision
- */
-bool move_piece(const Grid *grid, Piece *p, int dx, int dy) {
-    int new_x = p->offset_x + dx; // compute the new column position
-    int new_y = p->offset_y + dy; // compute the new row position
-
-    // check if the new position is valid
-    if (is_valid_position(grid, p, new_x, new_y)) {
-        // apply the move
-        p->offset_x = new_x;
-        p->offset_y = new_y;
-        return true;
-    }
-
-    // move blocked by collision or border
-    return false;
-}
+// Insert the piece's current shape into the grid
 void insert_piece_in_grid(Piece* piece, Grid* grid) {
     for (int i = piece->start_y; i < piece->height+piece->start_y; i++) {
         for (int j = piece->start_x; j < piece->width+piece->start_x; j++) {
@@ -188,13 +118,13 @@ void insert_piece_in_grid(Piece* piece, Grid* grid) {
 
                 // Check bounds
                 if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
-                    grid->shape[gy][gx] = '1';
+                    grid->shape[gy][gx] = '1';// Mark the grid cell
                 }
             }
         }
     }
 }
-
+// Remove the piece from the grid (restore empty cells).
 void remove_piece_from_grid(Piece* piece, Grid* grid) {
     for (int i = piece->start_y; i < piece->height+piece->start_y; i++) {
         for (int j = piece->start_x; j < piece->width+piece->start_x; j++) {
@@ -204,7 +134,7 @@ void remove_piece_from_grid(Piece* piece, Grid* grid) {
 
                 // Check bounds
                 if (gx >= 0 && gx < grid->width && gy >= 0 && gy < grid->height) {
-                    grid->shape[gy][gx] = '0';
+                    grid->shape[gy][gx] = '0';// Clear the cell
                 }
             }
         }
