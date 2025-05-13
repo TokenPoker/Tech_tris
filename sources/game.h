@@ -1,12 +1,14 @@
 #ifndef GAME_H
 #define GAME_H
 
+
 #include <stdbool.h>
 #include <SDL.h>
+#include "pieces.h"
 
-// Dimensions of the game grid
-#define GRID_WIDTH 10
-#define GRID_HEIGHT 10
+
+
+
 
 /**
  * Structure representing the game grid.
@@ -19,13 +21,8 @@
  *   width  : Width of the grid (usually GRID_WIDTH).
  *   height : Height of the grid (usually GRID_HEIGHT).
  */
-typedef struct {
-    char shape[GRID_HEIGHT][GRID_WIDTH];
-    int width;
-    int height;
-} Grid;
 
-#include "pieces.h" // Required for the Piece structure
+
 
 
 /**
@@ -163,3 +160,5 @@ bool auto_drop_piece( Piece *piece, const Grid *grid, int mode, Uint32 *lastDrop
 void clear_grid(Grid *grid);
 
 #endif // GAME_H
+
+

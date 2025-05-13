@@ -7,7 +7,7 @@ SDL2_CFLAGS = $(shell sdl2-config --cflags)
 SDL2_LDFLAGS = $(shell sdl2-config --libs) -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 # Source files
-SRC = main.c game.c pieces.c score.c
+SRC = main.c game.c pieces.c score.c render.c key.c
 OBJ = $(SRC:.c=.o)
 
 # Executable name

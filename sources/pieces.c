@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "game.h" 
-#include "pieces.h"
+
 
 
 // Load pieces from a text file into the array `allpieces`.

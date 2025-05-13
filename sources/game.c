@@ -1,28 +1,26 @@
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
 #include <SDL.h>
 #include "game.h"
 #include "pieces.h"
 #include "score.h"
 
-// Print debugging information about the current piece
-void debug_print_piece(const Piece* piece) {
-    printf("=== DEBUG PIECE ===\n");
-    printf("Width: %d | Height: %d | Pos: (%d, %d)\n",
-           piece->width, piece->height, piece->offset_x, piece->offset_y);
-    // Display the piece's shape
-    for (int i = 0; i < MAX_PIECE_SIZE; i++) {
-        for (int j = 0; j < MAX_PIECE_SIZE; j++) {
-            char c = piece->shape[i][j];
-            printf("%c", (c == '1') ? '#' : '.'); // '#' for block, '.' for empty
-        }
-        printf("\n");
-    }
-    printf("===================\n");
-}
+// // Print debugging information about the current piece
+// void debug_print_piece(const Piece* piece) {
+//     printf("=== DEBUG PIECE ===\n");
+//     printf("Width: %d | Height: %d | Pos: (%d, %d)\n",
+//            piece->width, piece->height, piece->offset_x, piece->offset_y);
+//     // Display the piece's shape
+//     for (int i = 0; i < MAX_PIECE_SIZE; i++) {
+//         for (int j = 0; j < MAX_PIECE_SIZE; j++) {
+//             char c = piece->shape[i][j];
+//             printf("%c", (c == '1') ? '#' : '.'); // '#' for block, '.' for empty
+//         }
+//         printf("\n");
+//     }
+//     printf("===================\n");
+// }
 
 // Clear all full lines in the grid and make upper lines fall down
 void clear_full_lines(Grid *grid, int* score) {
