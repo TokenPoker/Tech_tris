@@ -11,7 +11,7 @@
 - 💥 Suppression des lignes complètes
 - 🏆 Système de score
 - 💾 Sauvegarde des meilleurs scores
-- 🔊 Effets sonores (si ajoutés)
+- 🔊 Effets sonores
 - ⌨️ Contrôles au clavier
 
 ## 🎮 Commandes clavier
@@ -64,14 +64,27 @@ Pour lancer le jeu, utilisez la commande suivante :
 ```bash
 make run
 ```
-
 ## 🧠 Organisation du projet
 
-* `main.c` : point d'entrée du programme
-* `game.c` / `game.h` : logique du jeu
-* `score.c` / `score.h` : gestion des scores
-* `pieces.c` / `pieces.h` : définitions des pièces et mouvements
-* `Makefile` : compilation automatique
+Voici les fichiers sources et leurs rôles :
+
+| Fichier                 | Description                                                          |
+| ----------------------- | -------------------------------------------------------------------- |
+| `main.c`                | Point d'entrée du programme                                          |
+| `piece.c` / `piece.h`   | Définition et manipulation des pièces de Tetris                      |
+| `game.c` / `game.h`     | Logique principale du jeu : grille, placement, suppression de lignes |
+| `render.c` / `render.h` | Affichage du jeu à l’écran (SDL2)                                    |
+| `key.c` / `key.h`       | Gestion des entrées clavier et des actions associées                 |
+| `score.c` / `score.h`   | Gestion du score et des meilleurs scores (lecture/écriture fichier)  |
+| `Makefile`              | Fichier de compilation automatique                                   |
+
+📁 **Dossier `assets/`** :
+Contient les fichiers nécessaires au rendu graphique et audio :
+
+* Images des arrière-plans et des pièces
+* Musique (`Tetris Theme Music.mp3`)
+
+
 
 ## 👥 Équipe
 MI3-Groupe L

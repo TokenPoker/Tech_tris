@@ -1,0 +1,45 @@
+# Rapport de projet : Tech_tris
+
+## Introduction
+
+Le projet "Tech_tris" est une implémentation du célèbre jeu Tetris, développé en C en utilisant la bibliothèque SDL2 pour la gestion de l'affichage et des événements. 
+Le projet a été réalisé dans le cadre d'un travail en équipe, avec la participation de **Huser Kevi**, **OUARGHi Sheryne** et **Meziani Yassin** (qui a été absent pendant toute la durée du projet). 
+Chacun des membres de l'équipe a pris en charge une partie spécifique du projet.
+
+## Répartition des tâches
+
+- **Kevin** a pris en charge la majeure partie du travail relatif à la bibliothèque SDL2, ce qui a inclus la gestion de l'affichage des pièces, des animations, et des événements dans le jeu.
+- **Sheryne** s'est occupée de l'implémentation des fonctions principales du jeu, ainsi que de une partie de la gestion des pièces et des scores et a également rédigé les commentaires du code et la documentation du projet dans le fichier README.
+
+## Problèmes rencontrés
+
+Au cours du développement, l'équipe a fait face à plusieurs défis techniques, principalement liés à l'affichage et au comportement des pièces du jeu. Voici les problèmes majeurs rencontrés :
+
+- **Affichage des pièces :** Les pièces sortaient souvent du cadre, ce qui les rendait invisibles ou mal positionnées dans la grille.
+- **Déplacement des pièces :** Les pièces ne descendaient pas comme prévu, ce qui a compliqué l'implémentation du mécanisme de chute.
+- **Rotation des pièces :** La rotation des pièces posait également des difficultés, certaines pièces ne tournant pas correctement ou sortant du cadre lors de la rotation.
+
+Le défi principal a été de maîtriser l'affichage, d'autant plus que l'équipe était novice dans l'utilisation de la bibliothèque SDL2. Ce problème a pris une grande partie du temps de développement, nécessitant de multiples ajustements pour obtenir un rendu satisfaisant.
+
+## Fonctions superflues et changements d'objectifs
+
+Au début du projet, l'équipe avait prévu de n'entrer le nom du joueur qu'une seule fois, puis de le rechercher pour compléter les scores. Cependant, au fur et à mesure de l'avancement, ce système a été abandonné au profit d'un autre mécanisme de gestion des scores. Cela a conduit à la création de plusieurs fonctions qui, en fin de compte, n'ont pas été utilisées.
+
+Malgré cela, l'équipe a su rapidement ajuster ses objectifs en fonction des progrès réalisés et des contraintes techniques rencontrées. Étant donné que le jeu Tetris est déjà bien connu et largement utilisé, l'équipe a pu se concentrer sur l'implémentation d'un design simple et efficace dès le début du projet.
+
+## Objectifs et réalisations
+
+
+Le principal objectif du projet était de créer un jeu Tetris fonctionnel avec une gestion des pièces, des scores et un affichage correct.
+L'équipe a réussi à implémenter les fonctionnalités suivantes :
+
+- **Gestion des pièces :** Les pièces peuvent être déplacées et tournées dans l grille. Chaque pièce est représentée par une matrice 2D et peut être insérée dans la grille.
+- **Gestion des scores :** Les scores sont enregistrés dans un fichier et peuvent être comparés pour afficher le meilleur score. 
+- **Affichage graphique :** Le jeu utilise la bibliothèque SDL2 pour afficher les pièces, la grille et les événements en temps réel.
+
+Bien que le projet ait rencontré plusieurs obstacles, nous avons réussi à surmonter ces difficultés et à livrer un jeu fonctionnel, respectant les objectifs définis dès le début.
+
+## Conclusion
+
+En conclusion, le projet Tech_tris a permis à l'équipe de se familiariser avec la bibliothèque SDL2 et de développer une application de jeu complète en C. 
+Malgré les difficultés techniques, nous avons réussi à résoudre les problèmes rencontrés et à atteindre les objectifs initiaux.
