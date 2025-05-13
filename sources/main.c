@@ -60,11 +60,11 @@ int main() {
 
     // Load textures and font
     
-    TTF_Font* font = TTF_OpenFont("font.ttf", 28);
-    SDL_Texture* bgTextureMenu = IMG_LoadTexture(renderer, "fond_menu.png");
-    SDL_Texture* bgTexturePause = IMG_LoadTexture(renderer, "Menu_pause.png");
-    SDL_Texture* bgTexturesave = IMG_LoadTexture(renderer, "fond_save.png");
-    SDL_Texture* bgTexturegameover = IMG_LoadTexture(renderer, "front_Gameover.png");
+    TTF_Font* font = TTF_OpenFont("assets/font.ttf", 28);
+    SDL_Texture* bgTextureMenu = IMG_LoadTexture(renderer, "assets/fond_menu.png");
+    SDL_Texture* bgTexturePause = IMG_LoadTexture(renderer, "assets/Menu_pause.png");
+    SDL_Texture* bgTexturesave = IMG_LoadTexture(renderer, "assets/fond_save.png");
+    SDL_Texture* bgTexturegameover = IMG_LoadTexture(renderer, "assets/front_Gameover.png");
 
     if (!bgTextureMenu || !bgTexturePause || !bgTexturesave || !bgTexturegameover) {
         printf("Failed to load background: %s\n", IMG_GetError());
@@ -97,7 +97,7 @@ int main() {
         {770, 580, 160, 60}  // exit2Button
     };
     
-    Mix_Music* bgm = Mix_LoadMUS("Tetris Theme Music.mp3");
+    Mix_Music* bgm = Mix_LoadMUS("assets/Tetris Theme Music.mp3");
     int musicVolume = 64; // Valeur initiale (50%)
     Mix_VolumeMusic(musicVolume);
     int isMuted = false;

@@ -233,7 +233,7 @@ void renderGameover(SDL_Renderer* renderer, TTF_Font* font, SDL_Texture* bgTextu
 
     // Display top 3 scores inside box (555,450)-(800,570)
     Score* top[3];
-    get_top_three_scores_and_save("score.txt", top);
+    get_top_three_scores_and_save("assets/score.txt", top);
 
     int boxX = 555;
     int boxY = 450;

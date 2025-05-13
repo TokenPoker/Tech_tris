@@ -59,7 +59,7 @@ void handleEvents(SDL_Event *event, GameState *currentState, GameState *previous
                         } else {
                             Mix_PlayMusic(bgm, -1);
                         }
-                        load_pieces_from_file("pieces.txt", allPieces);
+                        load_pieces_from_file("assets/pieces.txt", allPieces);
                         spawn_random_piece_from_list(lockGrid, currentPiece, allPieces, MAX_PIECES);
                         SDL_StopTextInput();
                     }
@@ -111,7 +111,7 @@ void handleEvents(SDL_Event *event, GameState *currentState, GameState *previous
                     if (event->key.keysym.sym == SDLK_y) {
                         *currentState = *futurState;
                         *previousState = *futurState;
-                        save_scores_to_file(playerName, *score, "score.txt");
+                        save_scores_to_file(playerName, *score, "assets/score.txt");
                         *score = 0;
                         playerName[0] = '\0';
                         *nameLength = 0;
