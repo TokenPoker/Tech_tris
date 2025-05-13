@@ -20,7 +20,8 @@
 |----------------------|-------------------------------------|
 | ← / →                | Déplacement gauche / droite         |
 | ↓                    | Accélérer la descente               |
-| ↑                    | Rotation de la pièce                |
+| A                    | Rotation de la pièce vers la gauche |
+| S                    | Rotation de la pièce vers la droit  |
 | Espace               | Chute instantanée                   |
 | Échap                | Quitter le jeu                      |
 
