@@ -45,91 +45,26 @@ void update_score(int* currentScore) {
     *currentScore += 10 * 100;// Add 1000 points to the current score
 }
 
-// Check if the current score is a new high score and save it if true
-void check_and_save_highscore(int currentScore, const char* playerName, const char* filename) {
-    HighScore hs;
-    int found = load_highscore(&hs, filename);// Try to load existing high score
-
-    if (!found || currentScore > hs.score) {// If no high score or current is higher
-
-        FILE* file = fopen(filename, "w");// Open file in write mode (overwrite)
-        if (!file) {
-            perror("Failed to open highscore file");
-            return;
-        }
-
-        fprintf(file, "%s:%d\n", playerName, currentScore); // Save new high score
-        fclose(file);
-    }
-}
-
-// Load the best high score from the given file
-int load_highscore(HighScore* hs, const char* filename) {
-    FILE* file = fopen(filename, "r");// Open file in read mode
-    if (!file) return 0;
-
-    char line[100];
-    if (fgets(line, sizeof(line), file)) {
-        char* sep = strchr(line, ':');
-        if (sep) {
-            *sep = '\0';
-            strcpy(hs->pseudo, line);
-            hs->score = atoi(sep + 1);
-            fclose(file);
-            return 1;
-        }
-    }
-
-    fclose(file);
-    return 0;
-}
-
-// Find the last recorded score for a given player name in the file
-int find_score_by_name(const char* filename, const char* name) {
-    FILE* file = fopen(filename, "r");
-    if (!file) {
-        perror("Could not open score file");
-        return -1;
-    }
-
-    char line[100];
-    int foundScore = -1;
-
-    while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\n")] = '\0'; // remove newline
-        char* separator = strchr(line, ':');
-        if (separator) {
-            *separator = '\0';
-            if (strcmp(line, name) == 0) {
-                foundScore = atoi(separator + 1); // update latest score found
-            }
-        }
-    }
-
-    fclose(file);
-    return foundScore;
-}
-
 
 // Load all scores, sort them, and copy top 3 into top3 array
 void get_top_three_scores_and_save(const char* inputFile, Score* top3[3]) {
-    static Score allScores[100];
-    int count = load_scores_from_file(inputFile, allScores);
+    static Score allScores[100];// Static array to store all loaded scores
+    int count = load_scores_from_file(inputFile, allScores);// Load scores from file
 
     // If no scores found, initialize top3 with defaults
     for (int i = 0; i < 3; i++) {
-        static Score defaultScore;
+        static Score defaultScore; 
         defaultScore.score = 0;
         strcpy(defaultScore.pseudo, "N/A");
         top3[i] = &defaultScore;
     }
 
-    if (count == 0) return;
+    if (count == 0) return;// If no scores, exit early
 
     // Sort scores in descending order (highest first)
     for (int i = 0; i < count - 1; i++) {
         for (int j = i + 1; j < count; j++) {
-            if (allScores[j].score > allScores[i].score) {
+            if (allScores[j].score > allScores[i].score) { // Swap if out of order
                 Score temp = allScores[i];
                 allScores[i] = allScores[j];
                 allScores[j] = temp;
