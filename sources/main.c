@@ -26,15 +26,6 @@ Piece currentPiece;
 Piece allPieces[MAX_PIECES];
 
 int score = 0;
-// typedef enum {
-//     STATE_MENU,
-//     STATE_OPTIONS,
-//     STATE_GAME,
-//     STATE_PSEUDO,
-//     STATE_PAUSE,
-//     STATE_GAMEOVER,
-//     STATE_EXIT
-// } GameState;
 
 
 
